@@ -12,7 +12,7 @@ BLUE = (0, 0, 255)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Balls")
+pygame.display.set_caption("Balls (Gravity Simulation)")
 clock = pygame.time.Clock()
 
 
@@ -22,10 +22,10 @@ class Ball:
         self.y = y
         self.r = r
         self.pos = pygame.Vector2(self.x, self.y)
-        self.bounces = []
+        self.mass = self.r / 10
 
     def draw(self):
-        pygame.draw.circle(screen, WHITE, self.pos, self.r)
+        pygame.draw.circle(screen, RED, self.pos, self.r, 1)
 
 
 def main():
@@ -33,8 +33,8 @@ def main():
     balls = []
     radius = 0
     tempball = Ball(0, 0, 0)
-    seperationSpeed = 5
-    gravity = 4
+    speed = 5
+    velocity = pygame.Vector2(0, 0)
     while running:
         clock.tick(FPS)
 
@@ -64,22 +64,26 @@ def main():
         for ball in balls:
             ball.draw()
 
-            # Collision detection for each ball
-            for nball in balls:
-                if nball != ball:
-                    try:
+            # Gravity for each ball and collision
+            try:
+                for nball in balls:
+                    if nball != ball:
+                        oldVelocity = velocity
+
                         displacement = ball.pos - nball.pos
                         direction = displacement.normalize()
-                        velocity = direction * seperationSpeed
+                        velocity = direction * speed
                         distance = displacement.magnitude()
+
+                        force = ball.mass * ((velocity - oldVelocity) / FPS)
+                        ball.pos -= force
 
                         if distance < ball.r + nball.r:
                             ball.pos += velocity
-                    except ValueError:
-                        ...
-            # Gravity downwards
-            if ball.pos.y <= HEIGHT - ball.r:
-                ...
+
+            # This happens if two balls have the same position
+            except ValueError:
+                pass
 
         # Draw the temp ball if it exists
         try:
