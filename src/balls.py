@@ -1,5 +1,4 @@
 import pygame
-import math
 
 WIDTH = 600
 HEIGHT = 480
@@ -23,6 +22,7 @@ class Ball:
         self.y = y
         self.r = r
         self.pos = pygame.Vector2(self.x, self.y)
+        self.bounces = []
 
     def draw(self):
         pygame.draw.circle(screen, WHITE, self.pos, self.r)
@@ -33,12 +33,15 @@ def main():
     balls = []
     radius = 0
     tempball = Ball(0, 0, 0)
+    seperationSpeed = 5
+    gravity = 4
     while running:
         clock.tick(FPS)
 
         # Make a grow effect while mouse is pressed
         if pygame.mouse.get_pressed()[0]:
-            radius += 1
+            if radius <= 30:
+                radius += 1
             pos = pygame.mouse.get_pos()
             tempball = Ball(pos[0], pos[1], radius)
 
@@ -64,13 +67,19 @@ def main():
             # Collision detection for each ball
             for nball in balls:
                 if nball != ball:
-                    displacement = ball.pos - nball.pos
-                    direction = displacement.normalize()
-                    velocity = direction * 5
-                    distance = displacement.magnitude()
+                    try:
+                        displacement = ball.pos - nball.pos
+                        direction = displacement.normalize()
+                        velocity = direction * seperationSpeed
+                        distance = displacement.magnitude()
 
-                    if distance < ball.r + nball.r:
-                        ball.pos += velocity
+                        if distance < ball.r + nball.r:
+                            ball.pos += velocity
+                    except ValueError:
+                        ...
+            # Gravity downwards
+            if ball.pos.y <= HEIGHT - ball.r:
+                ...
 
         # Draw the temp ball if it exists
         try:
