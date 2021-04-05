@@ -17,14 +17,14 @@ pygame.display.set_caption("Balls")
 clock = pygame.time.Clock()
 
 
-class Ball(object):
+class Ball:
     def __init__(self, x, y, r):
         self.x = x
         self.y = y
         self.r = r
+        self.pos = pygame.Vector2(self.x, self.y)
 
     def draw(self):
-        self.pos = pygame.Vector2(self.x, self.y)
         pygame.draw.circle(screen, WHITE, self.pos, self.r)
 
 
@@ -35,36 +35,44 @@ def main():
     tempball = Ball(0, 0, 0)
     while running:
         clock.tick(FPS)
+
+        # Make a grow effect while mouse is pressed
         if pygame.mouse.get_pressed()[0]:
             radius += 1
-
             pos = pygame.mouse.get_pos()
             tempball = Ball(pos[0], pos[1], radius)
 
+        # Main event listening
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            # Delete the grow effect ball and draw real one
             if event.type == pygame.MOUSEBUTTONUP:
-                del tempball
                 pos = pygame.mouse.get_pos()
+                del tempball
                 balls.append(Ball(pos[0], pos[1], radius))
                 radius = 0
 
+        # Reset display
         screen.fill(BLACK)
 
+        # Render all balls
         for ball in balls:
             ball.draw()
 
             # Collision detection for each ball
             for nball in balls:
                 if nball != ball:
-                    dx = ball.x - nball.x
-                    dy = ball.y - nball.y
-                    distance = math.sqrt(dx * dx + dy * dy)
+                    displacement = ball.pos - nball.pos
+                    direction = displacement.normalize()
+                    velocity = direction * 5
+                    distance = displacement.magnitude()
 
                     if distance < ball.r + nball.r:
-                        print('collision')
+                        ball.pos += velocity
 
+        # Draw the temp ball if it exists
         try:
             tempball.draw()
         except Exception:
