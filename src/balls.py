@@ -75,8 +75,9 @@ def main():
                         velocity = direction * speed
                         distance = displacement.magnitude()
 
-                        force = ball.mass * ((velocity - oldVelocity) / FPS)
-                        ball.pos -= force
+                        acceleration = (velocity - oldVelocity) / FPS
+                        force = ball.mass * acceleration
+                        nball.pos += force
 
                         if distance < ball.r + nball.r:
                             ball.pos += velocity
