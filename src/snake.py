@@ -21,6 +21,7 @@ Vector2 = pygame.Vector2
 
 
 def randomBase10Int(max, min=0):
+    '''Gets a random integer that is divisible by 10'''
     num = random.randint(min, max)
     num = math.ceil(num / 10) * 10
     return num
@@ -28,34 +29,42 @@ def randomBase10Int(max, min=0):
 
 class Snake:
     def __init__(self):
+        '''The snake object'''
         self.parts = [Vector2(300, 240)]
         self.dx = 10
         self.dy = 0
         self.length = len(self.parts)
 
     def draw(self):
+        '''Draws the snake on the screen part by part'''
         self.length = len(self.parts)
         for part in self.parts:
             partRect = pygame.Rect(part.x, part.y, 10, 10)
             pygame.draw.rect(screen, GREEN, partRect, 1)
 
     def move(self):
+        '''Function to update position by moving the head and moving the
+        previous parts to the position that the head used to be in'''
         head = Vector2(self.parts[0].x + self.dx, self.parts[0].y + self.dy)
         self.parts.insert(0, head)
         self.parts.pop()
 
     def checkWallCollision(self):
+        '''Checks to see if the snake head is in contact with the wall'''
         ...
 
     def checkSelfCollision(self):
+        '''Checks to see if the snake head is in contact with itself'''
         ...
 
 
 class Food:
     def __init__(self):
+        '''Food object'''
         self.pos = Vector2(randomBase10Int(WIDTH), randomBase10Int(HEIGHT))
 
     def draw(self):
+        '''Draws the food onto the screen'''
         foodRect = pygame.Rect(self.pos.x, self.pos.y, 10, 10)
         pygame.draw.rect(screen, GREEN, foodRect)
 
@@ -94,17 +103,18 @@ def main():
         snake.draw()
         snake.move()
 
-        # Food drawing
+        # Create a new food once one is eaten
         if foodCount == 0:
             food = Food()
             foodCount += 1
 
+        # Draw the food
         try:
             food.draw()
         except Exception:
             pass
 
-        # Food COllision checkSelfCollision
+        # Food Collision checkSelfCollision
         if snake.parts[0] == food.pos:
             foodCount = 0
             snake.parts.append(snake.parts[len(snake.parts)-1])
