@@ -4,7 +4,7 @@ import random
 
 WIDTH = 600
 HEIGHT = 480
-FPS = 8
+FPS = 5
 
 SIZE = 20
 

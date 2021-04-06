@@ -12,7 +12,7 @@ BLUE = (0, 0, 255)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Balls (Gravity Simulation)")
+pygame.display.set_caption("Gravity Simulation")
 clock = pygame.time.Clock()
 
 
