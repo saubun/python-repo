@@ -92,6 +92,7 @@ class Food:
 
 
 def main():
+    '''Main function with game loop'''
     running = True
     snake = Snake()
     foodCount = 0
