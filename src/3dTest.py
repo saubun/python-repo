@@ -1,9 +1,10 @@
 import pygame
-import math
+import numpy as np
 
 WIDTH = 600
 HEIGHT = 480
 FPS = 60
+counter = 0
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -32,90 +33,102 @@ class Edge:
         self.stop = stop
 
 
+def translationMatrix(dx=0, dy=0, dz=0):
+    '''Return a matrix for translation along a vector (dx, dy, dz)'''
+
+    return np.array([[1, 0, 0, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, 1, 0],
+                     [dx, dy, dz, 1]])
+
+
+def scaleMatrix(sx=0, sy=0, sz=0):
+    '''Return a matrix for scaling all axes centered on point (sx, sy, sz)'''
+
+    return np.array([[sx, 0, 0, 0],
+                     [0, sy, 0, 0],
+                     [0, 0, sz, 0],
+                     [0, 0, 0, 1]])
+
+
+def rotateXMatrix(radians):
+    '''Return a matrix for rotating about the x-axis by given radians'''
+
+    c = np.cos(radians)
+    s = np.sin(radians)
+
+    return np.array([[1, 0, 0, 0],
+                     [0, c, -s, 0],
+                     [0, s, c, 0],
+                     [0, 0, 0, 1]])
+
+
+def rotateYMatrix(radians):
+    '''Return a matrix for rotating about the y-axis by given radians'''
+
+    c = np.cos(radians)
+    s = np.sin(radians)
+
+    return np.array([[c, 0, s, 0],
+                     [0, 1, 0, 0],
+                     [-s, 0, c, 0],
+                     [0, 0, 0, 1]])
+
+
+def rotateZMatrix(radians):
+    '''Return a matrix for rotating about the z-axis by given radians'''
+
+    c = np.cos(radians)
+    s = np.sin(radians)
+
+    return np.array([[c, -s, 0, 0],
+                     [s, c, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1]])
+
+
 class WireFrame:
     '''The surface created bound by multiple edges'''
 
     def __init__(self):
-        self.nodes = []
+        self.nodes = np.zeros((0, 4))
         self.edges = []
 
-    def addNodes(self, nodeList):
-        '''Append nodes to the WireFrame's Node List'''
-        for node in nodeList:
-            self.nodes.append(Node(node))
+    def addNodes(self, nodeArray):
+        '''Append nodes to the WireFrame's Node Array'''
+        onesColumn = np.ones((len(nodeArray), 1))
+        onesAdded = np.hstack((nodeArray, onesColumn))
+        self.nodes = np.vstack((self.nodes, onesAdded))
 
     def addEdges(self, edgeList):
         '''Append edges to the WireFrame's Edge List'''
-        for (start, stop) in edgeList:
-            self.edges.append(Edge(self.nodes[start], self.nodes[stop]))
+        self.edges += edgeList
 
     def outputNodes(self):
         '''List the current nodes in the WireFrame object'''
         print("\nNodes:")
-        for i, node, in enumerate(self.nodes):
-            print(f"{i}: ({node.x}, {node.y}, {node.z})")
+        for i, (x, y, z, _), in enumerate(self.nodes):
+            print(f"{i}: ({x}, {y}, {z})")
 
     def outputEdges(self):
         '''List the current edges in the WireFrame object'''
         print("\nEdges:")
-        for i, edge, in enumerate(self.edges):
-            print(f'{i}: ({edge.start.x}, {edge.start.y}, {edge.start.z})' +
-                  f' to ({edge.stop.x}, {edge.stop.y}, {edge.stop.z})')
+        for i, (node1, node2) in enumerate(self.edges):
+            print(f'{i}: {node1} -> {node2}')
 
-    def translate(self, axis, d):
-        '''Translate each node of a wireframe by d along a given axis'''
-
-        if axis in ['x', 'y', 'z']:
-            for node in self.nodes:
-                setattr(node, axis, getattr(node, axis) + d)
-
-    def scale(self, centerX, centerY, scale):
-        '''Scale the WireFrame from the center of the screen'''
-
-        for node in self.nodes:
-            node.x = centerX + scale * (node.x - centerX)
-            node.y = centerY + scale * (node.y - centerY)
-            node.z *= scale
+    def transform(self, matrix):
+        '''Apply a transformation defined by given a matrix'''
+        self.nodes = np.dot(self.nodes, matrix)
 
     def findCenter(self):
         '''Find the center of the WireFrame'''
 
         numNodes = len(self.nodes)
-        meanX = sum([node.x for node in self.nodes]) / numNodes
-        meanY = sum([node.y for node in self.nodes]) / numNodes
-        meanZ = sum([node.z for node in self.nodes]) / numNodes
+        meanX = sum([node[0] for node in self.nodes]) / numNodes
+        meanY = sum([node[1] for node in self.nodes]) / numNodes
+        meanZ = sum([node[2] for node in self.nodes]) / numNodes
 
         return (meanX, meanY, meanZ)
-
-    def rotateZ(self, cx, cy, cz, radians):
-        '''Rotate WireFrame along the Z axis'''
-        for node in self.nodes:
-            x = node.x - cx
-            y = node.y - cy
-            d = math.hypot(y, x)
-            theta = math.atan2(y, x) + radians
-            node.x = cx + d * math.cos(theta)
-            node.y = cy + d * math.sin(theta)
-
-    def rotateX(self, cx, cy, cz, radians):
-        '''Rotate WireFrame along the X axis'''
-        for node in self.nodes:
-            y = node.y - cy
-            z = node.z - cz
-            d = math.hypot(y, z)
-            theta = math.atan2(y, z) + radians
-            node.z = cz + d * math.cos(theta)
-            node.y = cy + d * math.sin(theta)
-
-    def rotateY(self, cx, cy, cz, radians):
-        '''Rotate WireFrame along the Y axis'''
-        for node in self.nodes:
-            x = node.x - cx
-            z = node.z - cz
-            d = math.hypot(x, z)
-            theta = math.atan2(x, z) + radians
-            node.z = cz + d * math.cos(theta)
-            node.x = cx + d * math.sin(theta)
 
 
 class ProjectionViewer:
@@ -141,21 +154,23 @@ class ProjectionViewer:
         running = True
 
         keyToFunction = {
-            pygame.K_LEFT: (lambda x: x.translateAll('x', -10)),
-            pygame.K_RIGHT: (lambda x: x.translateAll('x', 10)),
-            pygame.K_DOWN: (lambda x: x.translateAll('y', 10)),
-            pygame.K_UP: (lambda x: x.translateAll('y', -10)),
-            pygame.K_EQUALS: (lambda x: x.scaleAll(1.25)),
-            pygame.K_MINUS: (lambda x: x.scaleAll(0.8)),
-            pygame.K_q: (lambda x: x.rotateAll('X', 0.1)),
-            pygame.K_w: (lambda x: x.rotateAll('X', -0.1)),
-            pygame.K_a: (lambda x: x.rotateAll('Y', 0.1)),
-            pygame.K_s: (lambda x: x.rotateAll('Y', -0.1)),
-            pygame.K_z: (lambda x: x.rotateAll('Z', 0.1)),
-            pygame.K_x: (lambda x: x.rotateAll('Z', -0.1)),
+            pygame.K_LEFT: (lambda x: x.translateAll([-10, 0, 0])),
+            pygame.K_RIGHT: (lambda x: x.translateAll([10, 0, 0])),
+            pygame.K_DOWN: (lambda x: x.translateAll([0, 10, 0])),
+            pygame.K_UP: (lambda x: x.translateAll([0, -10, 0])),
+            pygame.K_EQUALS: (lambda x: x.scaleAll([1.25, 1.25, 1.25])),
+            pygame.K_MINUS: (lambda x: x.scaleAll([0.8, 0.8, 0.8])),
+            pygame.K_q: (lambda x: x.rotateAll('x', 0.1)),
+            pygame.K_w: (lambda x: x.rotateAll('x', -0.1)),
+            pygame.K_a: (lambda x: x.rotateAll('y', 0.1)),
+            pygame.K_s: (lambda x: x.rotateAll('y', -0.1)),
+            pygame.K_z: (lambda x: x.rotateAll('z', -0.1)),
+            pygame.K_x: (lambda x: x.rotateAll('z', 0.1)),
         }
 
         while running:
+            clock.tick(FPS)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -175,61 +190,73 @@ class ProjectionViewer:
 
         self.screen.fill(self.backgroundColor)
 
+        global counter
+        counter += 0.001
+
         for wireframe in self.wireframes.values():
             if self.displayEdges:
-                for edge in wireframe.edges:
+                for n1, n2 in wireframe.edges:
                     pygame.draw.aaline(self.screen, self.edgeColor,
-                                       (edge.start.x, edge.start.y),
-                                       (edge.stop.x, edge.stop.y), 1)
+                                       wireframe.nodes[n1][:2],
+                                       wireframe.nodes[n2][:2], 1)
             if self.displayNodes:
                 for node in wireframe.nodes:
                     pygame.draw.circle(self.screen, self.nodeColor,
-                                       (int(node.x), int(node.y)),
+                                       (int(node[0]), int(node[1])),
                                        self.nodeRadius, 0)
 
-    def translateAll(self, axis, d):
+            matrix = rotateXMatrix(counter)
+            wireframe.transform(matrix)
+            matrix = rotateYMatrix(counter)
+            wireframe.transform(matrix)
+            matrix = rotateZMatrix(counter)
+            wireframe.transform(matrix)
+
+    def translateAll(self, vector):
         '''Translate all WireFrames along a given axis by d units'''
 
+        matrix = translationMatrix(*vector)
         for wireframe in self.wireframes.values():
-            wireframe.translate(axis, d)
+            wireframe.transform(matrix)
 
-    def scaleAll(self, scale):
-        '''Scale all wireframes by a given scale,
+    def scaleAll(self, vector):
+        '''Scale all wireframes by a given vector,
            centered on the center of the screen'''
 
-        centerX = self.width / 2
-        centerY = self.height / 2
-
+        matrix = scaleMatrix(*vector)
         for wireframe in self.wireframes.values():
-            wireframe.scale(centerX, centerY, scale)
+            wireframe.transform(matrix)
 
     def rotateAll(self, axis, theta):
         '''Rotate all wireframes along the given axis by the given angle'''
 
-        rotateFunction = 'rotate' + axis.upper()
-
+        axis = axis.lower()
         for wireframe in self.wireframes.values():
-            center = wireframe.findCenter()
-            try:
-                getattr(wireframe, rotateFunction)(*center, theta)
-            except Exception:
+            if axis in ['x', 'y', 'z']:
+                if axis == 'x':
+                    matrix = rotateXMatrix(theta)
+                elif axis == 'y':
+                    matrix = rotateYMatrix(theta)
+                elif axis == 'z':
+                    matrix = rotateZMatrix(theta)
+                wireframe.transform(matrix)
+            else:
                 print("Invalid axis provided in rotateAll()")
 
 
 def main():
     '''Main function containing everything'''
 
-    # Calculate nodes and edges of a cube
-    r = (50, 250)
+    # Calculate nodes of a cube
+    r = (WIDTH/2, WIDTH/2 + 50)
     cubeNodes = [(x, y, z) for x in r for y in r for z in r]
-    cubeEdges = [(n, n + 4) for n in range(0, 4)]
-    cubeEdges += [(n, n + 1) for n in range(0, 8, 2)]
-    cubeEdges += [(n, n + 2) for n in (0, 1, 4, 5)]
 
     # Create a WireFrame
     cube = WireFrame()
-    cube.addNodes(cubeNodes)
-    cube.addEdges(cubeEdges)
+    cube.addNodes(np.array(cubeNodes))
+    cube.addEdges([(n, n + 4) for n in range(0, 4)])
+    cube.addEdges([(n, n + 1) for n in range(0, 8, 2)])
+    cube.addEdges([(n, n + 2) for n in (0, 1, 4, 5)])
 
     # Create display
     pv = ProjectionViewer(WIDTH, HEIGHT)
