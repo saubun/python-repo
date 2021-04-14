@@ -1,4 +1,5 @@
 import pygame
+import math
 
 WIDTH = 600
 HEIGHT = 480
@@ -76,6 +77,46 @@ class WireFrame:
             node.y = centerY + scale * (node.y - centerY)
             node.z *= scale
 
+    def findCenter(self):
+        '''Find the center of the WireFrame'''
+
+        numNodes = len(self.nodes)
+        meanX = sum([node.x for node in self.nodes]) / numNodes
+        meanY = sum([node.y for node in self.nodes]) / numNodes
+        meanZ = sum([node.z for node in self.nodes]) / numNodes
+
+        return (meanX, meanY, meanZ)
+
+    def rotateZ(self, cx, cy, cz, radians):
+        '''Rotate WireFrame along the Z axis'''
+        for node in self.nodes:
+            x = node.x - cx
+            y = node.y - cy
+            d = math.hypot(y, x)
+            theta = math.atan2(y, x) + radians
+            node.x = cx + d * math.cos(theta)
+            node.y = cy + d * math.sin(theta)
+
+    def rotateX(self, cx, cy, cz, radians):
+        '''Rotate WireFrame along the X axis'''
+        for node in self.nodes:
+            y = node.y - cy
+            z = node.z - cz
+            d = math.hypot(y, z)
+            theta = math.atan2(y, z) + radians
+            node.z = cz + d * math.cos(theta)
+            node.y = cy + d * math.sin(theta)
+
+    def rotateY(self, cx, cy, cz, radians):
+        '''Rotate WireFrame along the Y axis'''
+        for node in self.nodes:
+            x = node.x - cx
+            z = node.z - cz
+            d = math.hypot(x, z)
+            theta = math.atan2(x, z) + radians
+            node.z = cz + d * math.cos(theta)
+            node.x = cx + d * math.sin(theta)
+
 
 class ProjectionViewer:
     '''Displays 3D objects on a 2D display'''
@@ -100,12 +141,18 @@ class ProjectionViewer:
         running = True
 
         keyToFunction = {
-            pygame.K_a: (lambda x: x.translateAll('x', -10)),
-            pygame.K_d: (lambda x: x.translateAll('x', 10)),
-            pygame.K_s: (lambda x: x.translateAll('y', 10)),
-            pygame.K_w: (lambda x: x.translateAll('y', -10)),
+            pygame.K_LEFT: (lambda x: x.translateAll('x', -10)),
+            pygame.K_RIGHT: (lambda x: x.translateAll('x', 10)),
+            pygame.K_DOWN: (lambda x: x.translateAll('y', 10)),
+            pygame.K_UP: (lambda x: x.translateAll('y', -10)),
             pygame.K_EQUALS: (lambda x: x.scaleAll(1.25)),
-            pygame.K_MINUS: (lambda x: x.scaleAll(0.8))
+            pygame.K_MINUS: (lambda x: x.scaleAll(0.8)),
+            pygame.K_q: (lambda x: x.rotateAll('X', 0.1)),
+            pygame.K_w: (lambda x: x.rotateAll('X', -0.1)),
+            pygame.K_a: (lambda x: x.rotateAll('Y', 0.1)),
+            pygame.K_s: (lambda x: x.rotateAll('Y', -0.1)),
+            pygame.K_z: (lambda x: x.rotateAll('Z', 0.1)),
+            pygame.K_x: (lambda x: x.rotateAll('Z', -0.1)),
         }
 
         while running:
@@ -156,6 +203,18 @@ class ProjectionViewer:
         for wireframe in self.wireframes.values():
             wireframe.scale(centerX, centerY, scale)
 
+    def rotateAll(self, axis, theta):
+        '''Rotate all wireframes along the given axis by the given angle'''
+
+        rotateFunction = 'rotate' + axis.upper()
+
+        for wireframe in self.wireframes.values():
+            center = wireframe.findCenter()
+            try:
+                getattr(wireframe, rotateFunction)(*center, theta)
+            except Exception:
+                print("Invalid axis provided in rotateAll()")
+
 
 def main():
     '''Main function containing everything'''
@@ -165,16 +224,18 @@ def main():
     cubeNodes = [(x, y, z) for x in r for y in r for z in r]
     cubeEdges = [(n, n + 4) for n in range(0, 4)]
     cubeEdges += [(n, n + 1) for n in range(0, 8, 2)]
-    cubeEdges += [(n, n + 2) for n in (0, 1, 3, 5)]
+    cubeEdges += [(n, n + 2) for n in (0, 1, 4, 5)]
 
     # Create a WireFrame
     cube = WireFrame()
     cube.addNodes(cubeNodes)
     cube.addEdges(cubeEdges)
 
-    # Create display and begin
+    # Create display
     pv = ProjectionViewer(WIDTH, HEIGHT)
     pv.addWireFrame('cube', cube)
+
+    # Begin main loop
     pv.run()
 
 
