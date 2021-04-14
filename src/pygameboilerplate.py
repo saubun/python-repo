@@ -17,6 +17,7 @@ clock = pygame.time.Clock()
 
 
 def main():
+    '''Main function containing the game loop'''
     running = True
     while running:
         clock.tick(FPS)
@@ -29,6 +30,7 @@ def main():
         # Reset display
         screen.fill(BLACK)
 
+        # Update display
         pygame.display.update()
 
     pygame.quit()
