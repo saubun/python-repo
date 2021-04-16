@@ -20,12 +20,11 @@ clock = pygame.time.Clock()
 class Circle:
     '''A class to create a circle object'''
 
-    def __init__(self, pos: pygame.Vector2, radius: int):
+    def __init__(self, pos: pygame.Vector2, radius: int, mass: int):
         self.pos = pygame.Vector2(pos)
         self.radius = radius
-        self.bounce = 0
-        self.oldVelocity = pygame.Vector2(0, 0)
         self.velocity = pygame.Vector2(0, 0)
+        self.mass = mass
 
     def draw(self, color: set or list):
         '''Draw the Circle'''
@@ -62,7 +61,9 @@ def main():
 
     balls = []
 
-    balls.append(Circle((300, 300), 30))
+    balls.append(Circle((300, 300), 60, 5000000))
+
+    speed = 1.0
 
     running = True
     while running:
@@ -75,13 +76,20 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-
-        # Mouse
-        if pygame.mouse.get_pressed()[0]:
-            balls.append(Circle((pygame.mouse.get_pos()), 5))
+                if event.key == pygame.K_1:
+                    speed = 1
+                if event.key == pygame.K_2:
+                    speed = 10
+                if event.key == pygame.K_3:
+                    speed = 100
+                if event.key == pygame.K_4:
+                    speed = 1000
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if pygame.mouse.get_pressed()[0]:
+                    balls.append(Circle((pygame.mouse.get_pos()), 5, 500000))
 
         # Reset display
-        screen.fill(WHITE)
+        screen.fill(BLACK)
 
         # For all balls
         for ball in balls:
@@ -99,27 +107,34 @@ def main():
                 # Calculate forces
                 oldVelocity = ball.velocity
 
+                displacement = ball.pos - otherBall.pos
+
                 try:
-                    displacement = ball.pos - otherBall.pos
                     direction = displacement.normalize()
-                    ball.velocity = direction * 10.0
-                    distance = displacement.magnitude()
-
-                    acceleration = (ball.velocity - oldVelocity) / FPS
-                    force = ball.radius * acceleration
-                    otherBall.applyForce(force)
-
-                    # Check distance
-                    if ball.collisionCheckOtherCircle(otherBall, distance):
-                        otherBall.applyForce(-force)
-                        ...
-                        # otherBall.applyForce(force)
-
-                    # Apply forces
-                    # otherBall.applyForce(-force)
-
                 except ValueError:
-                    pass
+                    direction = displacement
+
+                ball.velocity = direction * speed
+                distance = displacement.magnitude()
+
+                acceleration = (ball.velocity - oldVelocity) / FPS
+
+                try:
+                    forceMagnitude = 0.0000000000667 * (
+                        (ball.mass * otherBall.mass) / distance**2)
+                except ZeroDivisionError:
+                    forceMagnitude = 0
+
+                force = acceleration * forceMagnitude
+
+                # Check distance
+                if ball.collisionCheckOtherCircle(otherBall, distance):
+                    ball.applyForce(force)
+                else:
+                    ball.applyForce(-force)
+
+                # for ball in balls[1:]:
+                #     ball.applyForce((0 * speed, -0.00001 * speed))
 
         # Update display
         pygame.display.update()
