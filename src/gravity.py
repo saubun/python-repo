@@ -1,4 +1,5 @@
 import pygame
+import random as r
 
 WIDTH = 600
 HEIGHT = 480
@@ -88,7 +89,9 @@ def main():
                 ...
 
         if pygame.mouse.get_pressed()[0]:
-            balls.append(Circle((pygame.mouse.get_pos()), 5, 5000000))
+            radius = r.randint(1, 5)
+            mass = radius * 1000000
+            balls.append(Circle((pygame.mouse.get_pos()), radius, mass))
 
         # Reset display
         screen.fill(BLACK)
