@@ -41,6 +41,42 @@ class Cell:
         )
         pygame.draw.rect(screen, self.color, rect)
 
+    def checkNeighbors(self, cells, i: int, j: int):
+        '''Checks neighboring cells in a very ugly way'''
+
+        try:
+            self.neighbors.append(cells[i-1][j-1])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i-1][j])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i-1][j+1])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i][j-1])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i][j+1])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i+1][j-1])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i+1][j])
+        except IndexError:
+            pass
+        try:
+            self.neighbors.append(cells[i+1][j+1])
+        except IndexError:
+            pass
+
 
 class Grid:
     '''An object for the grid itself'''
@@ -62,11 +98,14 @@ class Grid:
         for x in range(self.cols):
             for y in range(self.rows):
 
+                # Draw all cells
                 self.cells[x][y].draw()
 
                 # Main game
                 if self.gameStarted:
-                    ...
+                    self.cells[x][y].checkNeighbors(self.cells, x, y)
+                    if self.cells[x][y].value == 1:
+                        self.cells[x][y].neighbors[1].value = 1
 
 
 def main():
