@@ -1,8 +1,9 @@
 import pygame
+import numpy as np
 
-WIDTH = 600
-HEIGHT = 480
-FPS = 60
+WIDTH = 610
+HEIGHT = 485
+FPS = 10
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -25,7 +26,6 @@ class Cell:
     def __init__(self, pos: pygame.Vector2, value: int):
         self.pos = pygame.Vector2(pos)
         self.value = value
-        self.neighbors = []
 
     def draw(self):
         '''Draw a cell with the given parameters'''
@@ -41,72 +41,68 @@ class Cell:
         )
         pygame.draw.rect(screen, self.color, rect)
 
-    def checkNeighbors(self, cells, i: int, j: int):
-        '''Checks neighboring cells in a very ugly way'''
-
-        # Starts at top left
-        try:
-            self.neighbors.append(cells[i-1][j-1])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i-1][j])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i-1][j+1])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i][j-1])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i][j+1])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i+1][j-1])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i+1][j])
-        except IndexError:
-            pass
-        try:
-            self.neighbors.append(cells[i+1][j+1])
-        except IndexError:
-            pass
-
 
 class Grid:
     '''An object for the grid itself'''
 
     def __init__(self):
-        self.rows = 23
-        self.cols = 29
+        self.rows = HEIGHT // (CELLSIZE + MARGIN)
+        self.cols = WIDTH // (CELLSIZE + MARGIN)
         self.cells = []
+        self.newCells = []
+        self.generation = 0
 
         for x in range(self.cols):
             self.cells.append([])
             for y in range(self.rows):
-                self.cells[x].append(Cell((x, y), 0))
+                self.cells[x].append(Cell((x, y), np.random.randint(0, 2)))
 
         self.gameStarted = False
 
     def update(self):
         '''Update grid state'''
+        self.generation += 1
+
+        # Draw all cells
         for x in range(self.cols):
             for y in range(self.rows):
-
-                # Draw all cells
                 self.cells[x][y].draw()
 
-                # Main game
+        self.newCells = self.cells
+
+        # Main game
+        for x in range(self.cols):
+            for y in range(self.rows):
                 if self.gameStarted:
-                    self.cells[x][y].checkNeighbors(self.cells, x, y)
-                    if self.cells[x][y].value == 1:
-                        self.cells[x][y].neighbors[0].value = 1
+
+                    # Get neighbors and current cell state
+                    sum = self.getAliveNeighborCount(x, y)
+                    state = self.cells[x][y].value
+
+                    # Game rules
+                    if state == 0 and sum == 3:
+                        self.newCells[x][y].value = 1
+                    elif state == 1 and (sum < 2 or sum > 3):
+                        self.newCells[x][y].value = 0
+                    else:
+                        self.newCells[x][y].value = state
+
+        self.cells = self.newCells
+
+    def getAliveNeighborCount(self, x, y) -> int:
+        '''Get the amount neighboring alive cells from the cell
+           of the passed in x and y values'''
+        sum = 0
+
+        # Add all the neighbors
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                try:
+                    sum += self.cells[x+i][y+j].value
+                except IndexError:
+                    pass
+
+        return sum
 
 
 def main():
@@ -127,6 +123,12 @@ def main():
                     for x in range(grid.cols):
                         for y in range(grid.rows):
                             grid.cells[x][y].value = 0
+
+                # Fill cells randomly
+                if event.key == pygame.K_r:
+                    for x in range(grid.cols):
+                        for y in range(grid.rows):
+                            grid.cells[x][y].value = np.random.randint(0, 2)
 
                 # Allow toggling whether the simulation is active or not
                 if event.key == pygame.K_SPACE:
@@ -149,7 +151,7 @@ def main():
                         grid.cells[row][col].value = 0
 
         # Reset display
-        screen.fill(BLACK)
+        screen.fill(WHITE)
 
         # Render and update grid
         grid.update()
