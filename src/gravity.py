@@ -62,7 +62,7 @@ def main():
 
     balls = []
 
-    speed = 10
+    speed = 1
 
     running = True
     while running:
@@ -89,7 +89,7 @@ def main():
                 ...
 
         if pygame.mouse.get_pressed()[0]:
-            radius = r.randint(1, 5)
+            radius = r.randint(5, 10)
             mass = radius * 1000000
             balls.append(Circle((pygame.mouse.get_pos()), radius, mass))
 
@@ -132,7 +132,7 @@ def main():
 
                 force = acceleration * forceMagnitude
 
-                # Check distance
+                # Apply force and collision
                 if ball.collisionCheckOtherCircle(otherBall, distance):
                     ball.pos = otherBall.pos + (
                         direction * (ball.radius + otherBall.radius))
