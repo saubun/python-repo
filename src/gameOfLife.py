@@ -22,15 +22,21 @@ clock = pygame.time.Clock()
 class Cell:
     '''An object for each individual cell'''
 
-    def __init__(self, pos: pygame.Vector2, color: pygame.Vector3):
-        self.pos = pos
-        self.color = color
+    def __init__(self, pos: pygame.Vector2, value: int):
+        self.pos = pygame.Vector2(pos)
+        self.value = value
+        self.neighbors = []
 
     def draw(self):
         '''Draw a cell with the given parameters'''
+        if self.value == 0:
+            self.color = WHITE
+        elif self.value == 1:
+            self.color = GREEN
+
         rect = pygame.Rect(
-            (MARGIN + CELLSIZE) * self.pos[0] + MARGIN,
-            (MARGIN + CELLSIZE) * self.pos[1] + MARGIN,
+            (MARGIN + CELLSIZE) * self.pos.x + MARGIN,
+            (MARGIN + CELLSIZE) * self.pos.y + MARGIN,
             CELLSIZE, CELLSIZE
         )
         pygame.draw.rect(screen, self.color, rect)
@@ -42,23 +48,25 @@ class Grid:
     def __init__(self):
         self.rows = 23
         self.cols = 29
-        self.grid = [[0 for x in range(self.rows)] for y in range(self.cols)]
+        self.cells = []
+
+        for x in range(self.cols):
+            self.cells.append([])
+            for y in range(self.rows):
+                self.cells[x].append(Cell((x, y), 0))
 
         self.gameStarted = False
 
     def update(self):
         '''Update grid state'''
-        for i in range(self.cols):
-            for j in range(self.rows):
-                # Set color based on sqaure value
-                if self.grid[i][j] == 0:
-                    color = WHITE
-                if self.grid[i][j] == 1:
-                    color = GREEN
+        for x in range(self.cols):
+            for y in range(self.rows):
 
-                # Draw grid square
-                cell = Cell((i, j), color)
-                cell.draw()
+                self.cells[x][y].draw()
+
+                # Main game
+                if self.gameStarted:
+                    ...
 
 
 def main():
@@ -89,10 +97,10 @@ def main():
                     col = pos[1] // (CELLSIZE + MARGIN)
 
                     # Color the square if its empty
-                    if grid.grid[row][col] == 0:
-                        grid.grid[row][col] = 1
-                    elif grid.grid[row][col] == 1:
-                        grid.grid[row][col] = 0
+                    if grid.cells[row][col].value == 0:
+                        grid.cells[row][col].value = 1
+                    elif grid.cells[row][col].value == 1:
+                        grid.cells[row][col].value = 0
 
         # Reset display
         screen.fill(BLACK)
