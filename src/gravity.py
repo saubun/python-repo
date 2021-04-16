@@ -29,7 +29,7 @@ class Circle:
     def draw(self, color: set or list):
         '''Draw the Circle'''
         self.color = color
-        pygame.draw.circle(screen, self.color, self.pos, self.radius)
+        pygame.draw.circle(screen, self.color, self.pos, self.radius, 1)
 
     def applyForce(self, force: pygame.Vector2):
         '''Apply the given force to the Circle'''
@@ -61,9 +61,7 @@ def main():
 
     balls = []
 
-    balls.append(Circle((300, 300), 60, 5000000))
-
-    speed = 1.0
+    speed = 10
 
     running = True
     while running:
@@ -84,9 +82,13 @@ def main():
                     speed = 100
                 if event.key == pygame.K_4:
                     speed = 1000
+                if event.key == pygame.K_5:
+                    speed = 10000
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.mouse.get_pressed()[0]:
-                    balls.append(Circle((pygame.mouse.get_pos()), 5, 500000))
+                ...
+
+        if pygame.mouse.get_pressed()[0]:
+            balls.append(Circle((pygame.mouse.get_pos()), 5, 5000000))
 
         # Reset display
         screen.fill(BLACK)
@@ -129,12 +131,10 @@ def main():
 
                 # Check distance
                 if ball.collisionCheckOtherCircle(otherBall, distance):
-                    ball.applyForce(force)
+                    ball.pos = otherBall.pos + (
+                        direction * (ball.radius + otherBall.radius))
                 else:
                     ball.applyForce(-force)
-
-                # for ball in balls[1:]:
-                #     ball.applyForce((0 * speed, -0.00001 * speed))
 
         # Update display
         pygame.display.update()
