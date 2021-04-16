@@ -36,9 +36,12 @@ class Circle:
         '''Apply the given force to the Circle'''
         self.pos += force
 
-    def collisionCheckOtherCircle(self, circle) -> bool:
+    def collisionCheckOtherCircle(self, circle, distance) -> bool:
         '''Does circle collision checking between given circle and self'''
-        ...
+        if distance < self.radius + circle.radius:
+            return True
+        else:
+            return False
 
     def checkInsideScreen(self) -> bool:
         '''Checks if the Circle is inside the visual screen space'''
@@ -58,6 +61,8 @@ def main():
     '''Main function containing the game loop'''
 
     balls = []
+
+    balls.append(Circle((300, 300), 30))
 
     running = True
     while running:
@@ -91,26 +96,27 @@ def main():
             # For every other ball
             for otherBall in balls:
 
-                # Calculate gravity
+                # Calculate forces
                 oldVelocity = ball.velocity
 
                 try:
                     displacement = ball.pos - otherBall.pos
                     direction = displacement.normalize()
-                    ball.velocity = direction * 1.0
-                    # distance = displacement.magnitude()
+                    ball.velocity = direction * 10.0
+                    distance = displacement.magnitude()
 
                     acceleration = (ball.velocity - oldVelocity) / FPS
                     force = ball.radius * acceleration
+                    otherBall.applyForce(force)
 
                     # Check distance
-                    if ball.collisionCheckOtherCircle(otherBall):
-                        ...
-
-                    # Apply gravity
-                    else:
+                    if ball.collisionCheckOtherCircle(otherBall, distance):
                         otherBall.applyForce(-force)
-                        ball.applyForce(force)
+                        ...
+                        # otherBall.applyForce(force)
+
+                    # Apply forces
+                    # otherBall.applyForce(-force)
 
                 except ValueError:
                     pass
