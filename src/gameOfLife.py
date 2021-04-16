@@ -44,6 +44,7 @@ class Cell:
     def checkNeighbors(self, cells, i: int, j: int):
         '''Checks neighboring cells in a very ugly way'''
 
+        # Starts at top left
         try:
             self.neighbors.append(cells[i-1][j-1])
         except IndexError:
@@ -105,7 +106,7 @@ class Grid:
                 if self.gameStarted:
                     self.cells[x][y].checkNeighbors(self.cells, x, y)
                     if self.cells[x][y].value == 1:
-                        self.cells[x][y].neighbors[1].value = 1
+                        self.cells[x][y].neighbors[0].value = 1
 
 
 def main():
@@ -120,6 +121,12 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
+
+                # Reset
+                if event.key == pygame.K_ESCAPE:
+                    for x in range(grid.cols):
+                        for y in range(grid.rows):
+                            grid.cells[x][y].value = 0
 
                 # Allow toggling whether the simulation is active or not
                 if event.key == pygame.K_SPACE:
