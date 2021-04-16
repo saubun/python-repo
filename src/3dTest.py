@@ -4,7 +4,6 @@ import numpy as np
 WIDTH = 600
 HEIGHT = 480
 FPS = 60
-counter = 0
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -190,9 +189,6 @@ class ProjectionViewer:
 
         self.screen.fill(self.backgroundColor)
 
-        global counter
-        counter += 0.001
-
         for wireframe in self.wireframes.values():
             if self.displayEdges:
                 for n1, n2 in wireframe.edges:
@@ -205,11 +201,11 @@ class ProjectionViewer:
                                        (int(node[0]), int(node[1])),
                                        self.nodeRadius, 0)
 
-            matrix = rotateXMatrix(counter)
+            matrix = rotateXMatrix(np.radians(1))
             wireframe.transform(matrix)
-            matrix = rotateYMatrix(counter)
+            matrix = rotateYMatrix(np.radians(1))
             wireframe.transform(matrix)
-            matrix = rotateZMatrix(counter)
+            matrix = rotateZMatrix(np.radians(1))
             wireframe.transform(matrix)
 
     def translateAll(self, vector):
