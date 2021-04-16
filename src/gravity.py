@@ -30,7 +30,7 @@ class Circle:
     def draw(self, color: set or list):
         '''Draw the Circle'''
         self.color = color
-        pygame.draw.circle(screen, self.color, self.pos, self.radius, 1)
+        pygame.draw.circle(screen, self.color, self.pos, self.radius)
 
     def applyForce(self, force: pygame.Vector2):
         '''Apply the given force to the Circle'''
@@ -39,6 +39,19 @@ class Circle:
     def collisionCheckOtherCircle(self, circle) -> bool:
         '''Does circle collision checking between given circle and self'''
         ...
+
+    def checkInsideScreen(self) -> bool:
+        '''Checks if the Circle is inside the visual screen space'''
+        if self.pos.x < 0:
+            return True
+        elif self.pos.x > WIDTH:
+            return True
+        elif self.pos.y < 0:
+            return True
+        elif self.pos.y > HEIGHT:
+            return True
+        else:
+            return False
 
 
 def main():
@@ -63,14 +76,21 @@ def main():
             balls.append(Circle((pygame.mouse.get_pos()), 5))
 
         # Reset display
-        screen.fill(BLACK)
+        screen.fill(WHITE)
 
-        # Draw balls
+        # For all balls
         for ball in balls:
+
+            # Delete balls if they are offscreen for performance
+            if ball.checkInsideScreen():
+                balls.remove(ball)
+
+            # Draw ball
             ball.draw(GREEN)
 
             # For every other ball
             for otherBall in balls:
+
                 # Calculate gravity
                 oldVelocity = ball.velocity
 
@@ -84,18 +104,16 @@ def main():
                     force = ball.radius * acceleration
 
                     # Check distance
-                    if ball.collisionCheckOtherCircle(otherBall, ):
+                    if ball.collisionCheckOtherCircle(otherBall):
                         ...
 
                     # Apply gravity
                     else:
-                        otherBall.applyForce(force)
+                        otherBall.applyForce(-force)
                         ball.applyForce(force)
 
                 except ValueError:
                     pass
-
-        # ball.applyForce(pygame.Vector2(1, 0))
 
         # Update display
         pygame.display.update()
