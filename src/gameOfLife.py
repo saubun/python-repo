@@ -3,7 +3,7 @@ import numpy as np
 
 WIDTH = 610
 HEIGHT = 485
-FPS = 10
+FPS = 30
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -68,7 +68,7 @@ class Grid:
             for y in range(self.rows):
                 self.cells[x][y].draw()
 
-        self.newCells = self.cells
+        self.newCells = [x[:] for x in self.cells]
 
         # Main game
         for x in range(self.cols):
@@ -87,7 +87,7 @@ class Grid:
                     else:
                         self.newCells[x][y].value = state
 
-        self.cells = self.newCells
+        self.cells = [x[:] for x in self.newCells]
 
     def getAliveNeighborCount(self, x, y) -> int:
         '''Get the amount neighboring alive cells from the cell
@@ -102,6 +102,9 @@ class Grid:
                 except IndexError:
                     pass
 
+        # Don't count self as a neighbor
+        sum -= self.cells[x][y].value
+
         return sum
 
 
@@ -110,7 +113,7 @@ def main():
     running = True
     grid = Grid()
 
-    # Fill in 50 random cells
+    # Fill in random cells
     for _ in range(1000):
         y = np.random.randint(0, grid.rows-1)
         x = np.random.randint(0, grid.cols-1)
