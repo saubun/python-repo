@@ -11,8 +11,8 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-MARGIN = 1
-CELLSIZE = 20
+MARGIN = 0
+CELLSIZE = 5
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -55,7 +55,7 @@ class Grid:
         for x in range(self.cols):
             self.cells.append([])
             for y in range(self.rows):
-                self.cells[x].append(Cell((x, y), np.random.randint(0, 2)))
+                self.cells[x].append(Cell((x, y), 0))
 
         self.gameStarted = False
 
@@ -109,6 +109,13 @@ def main():
     '''Main function containing the game loop'''
     running = True
     grid = Grid()
+
+    # Fill in 50 random cells
+    for _ in range(1000):
+        y = np.random.randint(0, grid.rows-1)
+        x = np.random.randint(0, grid.cols-1)
+        grid.cells[x][y].value = np.random.randint(0, 2)
+
     while running:
         clock.tick(FPS)
 
@@ -126,9 +133,10 @@ def main():
 
                 # Fill cells randomly
                 if event.key == pygame.K_r:
-                    for x in range(grid.cols):
-                        for y in range(grid.rows):
-                            grid.cells[x][y].value = np.random.randint(0, 2)
+                    for _ in range(1000):
+                        y = np.random.randint(0, grid.rows-1)
+                        x = np.random.randint(0, grid.cols-1)
+                        grid.cells[x][y].value = np.random.randint(0, 2)
 
                 # Allow toggling whether the simulation is active or not
                 if event.key == pygame.K_SPACE:
