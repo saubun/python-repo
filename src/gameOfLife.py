@@ -3,7 +3,7 @@ import numpy as np
 
 WIDTH = 610
 HEIGHT = 485
-FPS = 30
+FPS = 10
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -11,8 +11,8 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-MARGIN = 0
-CELLSIZE = 5
+MARGIN = 1
+CELLSIZE = 10
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -164,7 +164,7 @@ def main():
                         grid.cells[row][col].value = 0
 
         # Reset display
-        screen.fill(WHITE)
+        screen.fill((150, 150, 150))
 
         # Render and update grid
         grid.update()
