@@ -68,12 +68,19 @@ class Grid:
             for y in range(self.rows):
                 self.cells[x][y].draw()
 
-        self.newCells = [x[:] for x in self.cells]
+        # Main Game
+        if self.gameStarted:
 
-        # Main game
-        for x in range(self.cols):
-            for y in range(self.rows):
-                if self.gameStarted:
+            # Create empty list for new cells
+            self.newCells = []
+            for x in range(self.cols):
+                self.newCells.append([])
+                for y in range(self.rows):
+                    self.newCells[x].append(Cell((x, y), 0))
+
+            # Check all cells
+            for x in range(self.cols):
+                for y in range(self.rows):
 
                     # Get neighbors and current cell state
                     sum = self.getAliveNeighborCount(x, y)
@@ -87,7 +94,8 @@ class Grid:
                     else:
                         self.newCells[x][y].value = state
 
-        self.cells = [x[:] for x in self.newCells]
+            # Update cell list
+            self.cells = self.newCells.copy()
 
     def getAliveNeighborCount(self, x, y) -> int:
         '''Get the amount neighboring alive cells from the cell
@@ -112,12 +120,6 @@ def main():
     '''Main function containing the game loop'''
     running = True
     grid = Grid()
-
-    # Fill in random cells
-    for _ in range(1000):
-        y = np.random.randint(0, grid.rows-1)
-        x = np.random.randint(0, grid.cols-1)
-        grid.cells[x][y].value = np.random.randint(0, 2)
 
     while running:
         clock.tick(FPS)
